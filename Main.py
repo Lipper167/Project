@@ -18,30 +18,47 @@ def search_food():
     food = entry.get().strip().lower()
 
     if not food:
-        result_label.config(text="Please enter a food name", fg="white")
+        result_label.config(
+            text="Please enter a food name",
+            fg="white"
+        )
         return
 
     btn.config(text="Searching...", state="disabled")
     root.update_idletasks()
 
     try:
+
         url = "https://api.nal.usda.gov/fdc/v1/foods/search"
+
         params = {
             "query": food,
             "api_key": API_KEY,
             "pageSize": 10
         }
 
-        data = requests.get(url, params=params, timeout=10).json()
+        data = requests.get(
+            url,
+            params=params,
+            timeout=10
+        ).json()
+
         foods = data.get("foods", [])
 
         if not foods:
-            result_label.config(text="Food not found", fg="white")
+            result_label.config(
+                text="Food not found",
+                fg="white"
+            )
             btn.config(text="Search", state="normal")
             return
 
         item = foods[0]
-        food_text = item.get("description", "").lower()
+
+        food_text = item.get(
+            "description",
+            ""
+        ).lower()
 
         protein = carbs = fat = calories = 0
         fiber = vitamins = minerals = 0
@@ -49,7 +66,10 @@ def search_food():
 
         for n in item.get("foodNutrients", []):
 
-            name = (n.get("nutrientName") or "").lower()
+            name = (
+                n.get("nutrientName") or ""
+            ).lower()
+
             value = n.get("value")
 
             if value is None:
@@ -57,10 +77,15 @@ def search_food():
 
             try:
                 value = float(value)
+
             except:
                 value = 0
 
-            if "energy" in name or "calorie" in name or "kcal" in name:
+            if (
+                "energy" in name or
+                "calorie" in name or
+                "kcal" in name
+            ):
                 calories = value
 
             elif "protein" in name:
@@ -69,7 +94,10 @@ def search_food():
             elif "carbohydrate" in name:
                 carbs = value
 
-            elif "lipid" in name or "fat" in name:
+            elif (
+                "lipid" in name or
+                "fat" in name
+            ):
                 fat = value
 
             elif "fiber" in name:
@@ -84,37 +112,64 @@ def search_food():
             elif "vitamin" in name:
                 vitamins += value
 
-            elif any(x in name for x in
-                     ["calcium", "iron", "magnesium", "potassium"]):
+            elif any(
+                x in name for x in
+                [
+                    "calcium",
+                    "iron",
+                    "magnesium",
+                    "potassium"
+                ]
+            ):
                 minerals += value
 
         fruit_keywords = [
-            "apple", "banana", "watermelon", "orange",
-            "grape", "mango", "pear", "pineapple"
+            "apple", "banana", "orange",
+            "mango", "grape", "pear",
+            "pineapple", "watermelon"
         ]
 
         veg_keywords = [
-            "spinach", "broccoli", "carrot",
-            "cucumber", "lettuce", "tomato"
+            "spinach", "broccoli",
+            "carrot", "lettuce",
+            "tomato", "cucumber"
         ]
 
         junk_keywords = [
-            "burger", "pizza", "fries", "hot dog",
-            "donut", "cake", "cookie", "chips"
+            "burger", "pizza",
+            "fries", "cake",
+            "cookie", "chips"
         ]
 
         processed_keywords = [
-            "instant", "packaged", "processed",
-            "frozen", "fast food"
+            "instant",
+            "processed",
+            "packaged",
+            "frozen"
         ]
 
-        is_fruit = any(x in food_text for x in fruit_keywords)
-        is_veg = any(x in food_text for x in veg_keywords)
-        is_junk = any(x in food_text for x in junk_keywords)
-        is_processed = any(x in food_text for x in processed_keywords)
+        is_fruit = any(
+            x in food_text
+            for x in fruit_keywords
+        )
 
-        junk_score = 0
+        is_veg = any(
+            x in food_text
+            for x in veg_keywords
+        )
+
+        is_junk = any(
+            x in food_text
+            for x in junk_keywords
+        )
+
+        is_processed = any(
+            x in food_text
+            for x in processed_keywords
+        )
+
         healthy_score = 0
+        junk_score = 0
 
         if protein >= 8:
             healthy_score += 15
@@ -157,7 +212,10 @@ def search_food():
 
         final_score = max(
             0,
-            min(100, healthy_score - junk_score + 45)
+            min(
+                100,
+                healthy_score - junk_score + 45
+            )
         )
 
         if final_score >= 80:
@@ -176,42 +234,75 @@ def search_food():
             health = "🍔 Unhealthy"
             color = "#e74c3c"
 
-        # CENTERED DATA
         result_label.config(
-            text=f"{item['description']}\n\n"
-                 f"Calories : {calories}\n"
-                 f"Protein : {protein}g\n"
-                 f"Carbs : {carbs}g\n"
-                 f"Fat : {fat}g\n"
-                 f"Sugar : {sugar}g\n\n"
-                 f"Score : {final_score}/100\n\n"
-                 f"{health}",
+            text=
+            f"{item['description']}\n\n"
+            f"Calories : {calories:.1f}\n"
+            f"Protein : {protein:.1f}g\n"
+            f"Carbs : {carbs:.1f}g\n"
+            f"Fat : {fat:.1f}g\n"
+            f"Sugar : {sugar:.1f}g\n\n"
+            f"Score : {final_score}/100\n\n"
+            f"{health}",
             fg=color,
-            justify="center"
+            justify="center",
+            anchor="center"
         )
 
-        # PROGRESS BARS
-        calories_bar["value"] = min((calories / 800) * 100, 100)
-        protein_bar["value"] = min((protein / 50) * 100, 100)
-        carbs_bar["value"] = min((carbs / 100) * 100, 100)
-        fat_bar["value"] = min((fat / 70) * 100, 100)
+        calories_bar["value"] = min(
+            (calories / 800) * 100,
+            100
+        )
+
+        protein_bar["value"] = min(
+            (protein / 50) * 100,
+            100
+        )
+
+        carbs_bar["value"] = min(
+            (carbs / 100) * 100,
+            100
+        )
+
+        fat_bar["value"] = min(
+            (fat / 70) * 100,
+            100
+        )
 
     except Exception as e:
-        result_label.config(text="API Error", fg="white")
+
+        result_label.config(
+            text="API Error",
+            fg="white"
+        )
+
         print(e)
 
-    btn.config(text="Search", state="normal")
+    btn.config(
+        text="Search",
+        state="normal"
+    )
 
 
 def animate_title():
-    canvas.itemconfig(title, fill=next(colors))
-    root.after(400, animate_title)
+
+    canvas.itemconfig(
+        title,
+        fill=next(colors)
+    )
+
+    root.after(
+        400,
+        animate_title
+    )
 
 
-# MAIN WINDOW
 root = tk.Tk()
+
 root.title("Food Nutrition Analyzer")
+
 root.geometry("900x650")
+
 root.resizable(False, False)
 
 canvas = tk.Canvas(
@@ -220,10 +311,13 @@ canvas = tk.Canvas(
     height=650,
     highlightthickness=0
 )
+
 canvas.pack()
 
-# BACKGROUND IMAGE
-bg = Image.open("food.jpg").resize((900, 650))
+bg = Image.open(
+    "food.jpg"
+).resize((900, 650))
+
 bg_img = ImageTk.PhotoImage(bg)
 
 canvas.bg_img = bg_img
@@ -235,7 +329,6 @@ canvas.create_image(
     anchor="nw"
 )
 
-# TITLE
 title = canvas.create_text(
     450,
     50,
@@ -254,16 +347,18 @@ canvas.create_text(
     fill="#064E3B"
 )
 
-# WATERMARK 
 canvas.create_text(
-    840, 20,
+    830,
+    20,
     text="Made by GDGPSD",
     font=("Segoe UI", 9, "italic"),
-    fill="#ffffff"
+    fill="white"
 )
 
-# SEARCH BAR
-frame = tk.Frame(root, bg="#000000")
+frame = tk.Frame(
+    root,
+    bg="#000000"
+)
 
 entry = tk.Entry(
     frame,
@@ -272,7 +367,10 @@ entry = tk.Entry(
     justify="center"
 )
 
-entry.pack(side="left", ipady=6)
+entry.pack(
+    side="left",
+    ipady=6
+)
 
 btn = tk.Button(
     frame,
@@ -288,72 +386,91 @@ btn = tk.Button(
 
 btn.pack(side="left")
 
-canvas.create_window(450, 150, window=frame)
+canvas.create_window(
+    450,
+    150,
+    window=frame
+)
 
-# RESULT CARD
-card = tk.Frame(
+main_result_frame = tk.Frame(
     root,
-    bg="#1e1e1e"
-)
-
-canvas.create_window(450, 320, window=card)
-
-result_label = tk.Label(
-    card,
-    text="Search food",
-    font=("Segoe UI", 13),
-    bg="#1e1e1e",
-    fg="white",
-    justify="center",
-    padx=40,
-    pady=25
-)
-
-result_label.pack()
-
-# PROGRESS BAR STYLE
-style = ttk.Style()
-style.theme_use("clam")
-
-style.configure(
-    "TProgressbar",
-    troughcolor="#222222",
-    background="#2ecc71",
-    thickness=20
-)
-
-# BOTTOM PROGRESS BAR SECTION
-bottom_frame = tk.Frame(
-    root,
-    bg="#111111"
+    bg="#000000"
 )
 
 canvas.create_window(
     450,
-    560,
-    window=bottom_frame
+    390,
+    window=main_result_frame
+)
+
+card = tk.Frame(
+    main_result_frame,
+    bg="#1a1a1a"
+)
+
+card.pack(
+    side="left",
+    padx=20
+)
+
+result_label = tk.Label(
+    card,
+    text="Search food",
+    font=("Segoe UI", 11, "bold"),
+    bg="#1a1a1a",
+    fg="white",
+    justify="center",
+    width=22,
+    padx=20,
+    pady=20
+)
+
+result_label.pack()
+
+style = ttk.Style()
+
+style.theme_use("clam")
+
+style.configure(
+    "TProgressbar",
+    troughcolor="#2b2b2b",
+    background="#2ecc71",
+    thickness=14
+)
+
+bars_frame = tk.Frame(
+    main_result_frame,
+    bg="#000000"
+)
+
+bars_frame.pack(
+    side="left",
+    padx=15
 )
 
 def make_bar(name):
 
     container = tk.Frame(
-        bottom_frame,
-        bg="#111111"
+        bars_frame,
+        bg="#000000"
     )
 
-    container.pack(pady=8)
+    container.pack(
+        pady=10,
+        anchor="w"
+    )
 
     tk.Label(
         container,
         text=name,
         font=("Segoe UI", 10, "bold"),
-        bg="#111111",
+        bg="#000000",
         fg="white"
-    ).pack()
+    ).pack(anchor="w")
 
     bar = ttk.Progressbar(
         container,
-        length=320,
+        length=220,
         mode="determinate"
     )
 
