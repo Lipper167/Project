@@ -4,3 +4,6 @@ This project helps in checking the nutritional values of different foods our sof
 
 To run the code you need to have the USDA API which you can get from https://fdc.nal.usda.gov/api-key-signup 
 .We hope you like it
+
+made by Priyanshi Chaudhury, Rachit Singh and Anya Ghosh 
+of 12 grade from GD Goenka Public Scool Dwarka.
